@@ -1,0 +1,203 @@
+// ============================================================
+// Portfolio Platform – Prisma Schema
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ────────────────────────────────────────────────────
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt hash
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile   Profile?
+}
+
+enum Role {
+  ADMIN
+}
+
+// ─── Profile ─────────────────────────────────────────────────
+model Profile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName     String
+  title        String   // e.g. "Full-Stack Engineer & OSS Contributor"
+  bio          String   @db.Text
+  avatar       String?
+  banner       String?
+  location     String?
+  email        String?
+  phone        String?
+  resumeUrl    String?
+  availability Boolean  @default(true)
+  socialLinks  Json     @default("{}")  // { github, linkedin, twitter, ... }
+
+  updatedAt    DateTime @updatedAt
+}
+
+// ─── Skill ───────────────────────────────────────────────────
+model Skill {
+  id                String        @id @default(cuid())
+  name              String
+  category          SkillCategory
+  level             Int           // 0–100
+  icon              String?       // SVG slug or URL
+  yearsOfExperience Float?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+enum SkillCategory {
+  FRONTEND
+  BACKEND
+  DEVOPS
+  DATABASE
+  MOBILE
+  DESIGN
+  TESTING
+  OTHER
+}
+
+// ─── Project ─────────────────────────────────────────────────
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  summary     String
+  description String        @db.Text
+  techStack   String[]      // e.g. ["Next.js", "Prisma"]
+  githubUrl   String?
+  liveUrl     String?
+  thumbnail   String?
+  images      String[]      // array of URLs
+  videoUrl    String?
+  status      ProjectStatus @default(COMPLETED)
+  featured    Boolean       @default(false)
+  category    String?
+  role        String?       // "Lead Developer"
+  views       Int           @default(0)
+  likes       Int           @default(0)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum ProjectStatus {
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+// ─── Experience ──────────────────────────────────────────────
+model Experience {
+  id           String   @id @default(cuid())
+  company      String
+  role         String
+  logo         String?
+  startDate    DateTime
+  endDate      DateTime?
+  current      Boolean  @default(false)
+  description  String   @db.Text
+  technologies String[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ─── Education ───────────────────────────────────────────────
+model Education {
+  id          String   @id @default(cuid())
+  institution String
+  degree      String
+  field       String
+  startYear   Int
+  endYear     Int?
+  description String?  @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Certification ───────────────────────────────────────────
+model Certification {
+  id            String   @id @default(cuid())
+  title         String
+  issuer        String
+  issueDate     DateTime
+  credentialId  String?
+  credentialUrl String?
+  image         String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ─── Blog ────────────────────────────────────────────────────
+model Blog {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @db.Text  // Markdown / MDX
+  thumbnail String?
+  tags      String[]
+  published Boolean  @default(false)
+  views     Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Testimonial ─────────────────────────────────────────────
+model Testimonial {
+  id      String @id @default(cuid())
+  name    String
+  role    String
+  company String
+  image   String?
+  message String @db.Text
+  rating  Int    @default(5) // 1–5
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Contact Message ─────────────────────────────────────────
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  read      Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+// ─── Site Settings ───────────────────────────────────────────
+model Settings {
+  id             String @id @default(cuid())
+  theme          String @default("dark")
+  primaryColor   String @default("#6366f1")  // indigo
+  font           String @default("Inter")
+  layout         String @default("default")
+  seoTitle       String @default("My Portfolio")
+  seoDescription String @default("Full-stack developer portfolio")
+  logoUrl           String?
+  faviconUrl        String?
+  updatedAt      DateTime @updatedAt
+}

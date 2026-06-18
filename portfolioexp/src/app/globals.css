@@ -1,0 +1,116 @@
+/* src/app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /*
+   * Dynamic accent color: set by root layout via inline <style> from DB settings.
+   * Fallback values used during SSR before settings load.
+   */
+  :root {
+    --color-accent:       #6366f1;
+    --color-accent-hover: #818cf8;
+    --font-body:          "Inter", system-ui, sans-serif;
+  }
+
+  * { @apply border-surface-border; }
+
+  html { @apply scroll-smooth; }
+
+  /* ── Dark mode (default) ───────────────────────────── */
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html.dark body {
+    @apply bg-surface text-slate-200;
+  }
+
+  /* ── Light mode ────────────────────────────────────── */
+  html.light {
+    color-scheme: light;
+  }
+
+  html.light body {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+
+  html.light .card {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+  }
+
+  html.light .bg-surface      { background-color: #f8fafc; }
+  html.light .bg-surface-card { background-color: #ffffff; }
+  html.light .border-surface-border { border-color: #e2e8f0; }
+  html.light .text-slate-400  { color: #475569; }
+  html.light .text-slate-500  { color: #64748b; }
+
+  body {
+    font-family: var(--font-body), system-ui, sans-serif;
+    @apply antialiased;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar        { width: 6px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { border-radius: 9999px; background: #1e2135; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+
+  /* Focus ring uses dynamic accent */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-accent);
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface-card border border-surface-border rounded-2xl;
+  }
+
+  /* Gradient text using dynamic accent color */
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      var(--color-accent-hover),
+      var(--color-accent),
+      #a78bfa
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .section {
+    @apply py-20 px-4 md:px-8 max-w-6xl mx-auto;
+  }
+
+  .skill-bar {
+    @apply h-1.5 bg-surface-border rounded-full overflow-hidden;
+  }
+
+  .skill-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--color-accent), #a78bfa);
+    transition: width 0.7s ease;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn  { from { opacity: 0; }                           to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+.animate-fade-in  { animation: fadeIn  0.4s ease-out; }
+.animate-slide-up { animation: slideUp 0.5s ease-out; }
+.animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
