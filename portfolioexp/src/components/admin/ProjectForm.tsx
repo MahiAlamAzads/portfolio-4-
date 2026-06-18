@@ -7,16 +7,25 @@ import { Save, Plus, X } from "lucide-react";
 import { slugify } from "@/lib/utils";
 import type { Project, ProjectStatus } from "@prisma/client";
 
-interface Props { project?: Project }
+interface Props {
+  project?: Project;
+}
 
 const STATUSES: ProjectStatus[] = ["IN_PROGRESS", "COMPLETED", "ARCHIVED"];
 
 const empty = {
-  title: "", slug: "", summary: "", description: "",
+  title: "",
+  slug: "",
+  summary: "",
+  description: "",
   techStack: [] as string[],
-  githubUrl: "", liveUrl: "", thumbnail: "",
+  githubUrl: "",
+  liveUrl: "",
+  thumbnail: "",
   status: "COMPLETED" as ProjectStatus,
-  featured: false, category: "", role: "",
+  featured: false,
+  category: "",
+  role: "",
 };
 
 export default function ProjectForm({ project }: Props) {
@@ -25,17 +34,30 @@ export default function ProjectForm({ project }: Props) {
 
   const [form, setForm] = useState(
     isEdit
-      ? { ...project, techStack: project.techStack ?? [], githubUrl: project.githubUrl ?? "", liveUrl: project.liveUrl ?? "", thumbnail: project.thumbnail ?? "", category: project.category ?? "", role: project.role ?? "" }
-      : empty
+      ? {
+          ...project,
+          techStack: project.techStack ?? [],
+          githubUrl: project.githubUrl ?? "",
+          liveUrl: project.liveUrl ?? "",
+          thumbnail: project.thumbnail ?? "",
+          category: project.category ?? "",
+          role: project.role ?? "",
+        }
+      : empty,
   );
   const [techInput, setTechInput] = useState("");
-  const [saving, setSaving]       = useState(false);
-  const [error, setError]         = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const update = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
+  const update = (key: string, val: any) =>
+    setForm((f) => ({ ...f, [key]: val }));
 
   const handleTitleChange = (val: string) => {
-    setForm((f) => ({ ...f, title: val, slug: isEdit ? f.slug : slugify(val) }));
+    setForm((f) => ({
+      ...f,
+      title: val,
+      slug: isEdit ? f.slug : slugify(val),
+    }));
   };
 
   const addTech = () => {
@@ -46,19 +68,29 @@ export default function ProjectForm({ project }: Props) {
     setTechInput("");
   };
 
-  const removeTech = (t: string) => update("techStack", form.techStack.filter((x) => x !== t));
+  const removeTech = (t: string) =>
+    update(
+      "techStack",
+      form.techStack.filter((x) => x !== t),
+    );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true); setError("");
+    setSaving(true);
+    setError("");
     try {
-      const url    = isEdit ? `/api/projects/${project!.slug}` : "/api/projects";
+      const url = isEdit ? `/api/projects/${project!.slug}` : "/api/projects";
       const method = isEdit ? "PUT" : "POST";
-      const res    = await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error);
+      }
+
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       router.push("/admin/projects");
@@ -70,10 +102,23 @@ export default function ProjectForm({ project }: Props) {
     }
   };
 
-  const Field = ({ label, field, type = "text", placeholder = "", required = false }:
-    { label: string; field: string; type?: string; placeholder?: string; required?: boolean }) => (
+  const Field = ({
+    label,
+    field,
+    type = "text",
+    placeholder = "",
+    required = false,
+  }: {
+    label: string;
+    field: string;
+    type?: string;
+    placeholder?: string;
+    required?: boolean;
+  }) => (
     <div>
-      <label className="block text-sm font-medium text-slate-300 mb-1.5">{label}</label>
+      <label className="block text-sm font-medium text-slate-300 mb-1.5">
+        {label}
+      </label>
       <input
         type={type}
         required={required}
@@ -89,7 +134,9 @@ export default function ProjectForm({ project }: Props) {
     <form onSubmit={handleSubmit} className="card p-6 space-y-5">
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">Title *</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Title *
+          </label>
           <input
             required
             value={form.title}
@@ -99,7 +146,9 @@ export default function ProjectForm({ project }: Props) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">Slug *</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Slug *
+          </label>
           <input
             required
             value={form.slug}
@@ -111,7 +160,9 @@ export default function ProjectForm({ project }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">Summary *</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          Summary *
+        </label>
         <input
           required
           value={form.summary}
@@ -122,7 +173,9 @@ export default function ProjectForm({ project }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">Description (HTML/Markdown) *</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          Description (HTML/Markdown) *
+        </label>
         <textarea
           required
           rows={6}
@@ -135,44 +188,84 @@ export default function ProjectForm({ project }: Props) {
 
       {/* Tech Stack */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">Tech Stack</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          Tech Stack
+        </label>
         <div className="flex gap-2 mb-2">
           <input
             value={techInput}
             onChange={(e) => setTechInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTech(); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addTech();
+              }
+            }}
             placeholder="Next.js"
             className="flex-1 bg-surface border border-surface-border rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-accent transition-colors placeholder:text-slate-600"
           />
-          <button type="button" onClick={addTech}
-            className="px-4 py-2.5 bg-surface-border hover:bg-surface-card rounded-xl text-sm text-slate-300 transition-colors">
+          <button
+            type="button"
+            onClick={addTech}
+            className="px-4 py-2.5 bg-surface-border hover:bg-surface-card rounded-xl text-sm text-slate-300 transition-colors"
+          >
             <Plus size={15} />
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
           {form.techStack.map((t) => (
-            <span key={t} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-accent-muted text-accent rounded-lg">
+            <span
+              key={t}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-accent-muted text-accent rounded-lg"
+            >
               {t}
-              <button type="button" onClick={() => removeTech(t)}><X size={11} /></button>
+              <button type="button" onClick={() => removeTech(t)}>
+                <X size={11} />
+              </button>
             </span>
           ))}
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <Field label="GitHub URL" field="githubUrl" type="url" placeholder="https://github.com/…" />
-        <Field label="Live URL"   field="liveUrl"   type="url" placeholder="https://…" />
-        <Field label="Thumbnail URL" field="thumbnail" type="url" placeholder="https://…" />
-        <Field label="Category"   field="category"  placeholder="SaaS, Open Source, Client…" />
-        <Field label="Your Role"  field="role"      placeholder="Lead Developer" />
+        <Field
+          label="GitHub URL"
+          field="githubUrl"
+          type="url"
+          placeholder="https://github.com/…"
+        />
+        <Field
+          label="Live URL"
+          field="liveUrl"
+          type="url"
+          placeholder="https://…"
+        />
+        <Field
+          label="Thumbnail URL"
+          field="thumbnail"
+          type="url"
+          placeholder="https://…"
+        />
+        <Field
+          label="Category"
+          field="category"
+          placeholder="SaaS, Open Source, Client…"
+        />
+        <Field label="Your Role" field="role" placeholder="Lead Developer" />
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">Status</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Status
+          </label>
           <select
             value={form.status}
             onChange={(e) => update("status", e.target.value)}
             className="w-full bg-surface border border-surface-border rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-accent transition-colors"
           >
-            {STATUSES.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s.replace("_", " ")}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -196,7 +289,8 @@ export default function ProjectForm({ project }: Props) {
           disabled={saving}
           className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white font-medium rounded-xl text-sm transition-colors"
         >
-          <Save size={15} /> {saving ? "Saving…" : isEdit ? "Update project" : "Create project"}
+          <Save size={15} />{" "}
+          {saving ? "Saving…" : isEdit ? "Update project" : "Create project"}
         </button>
         <button
           type="button"

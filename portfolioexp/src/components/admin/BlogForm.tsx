@@ -7,11 +7,17 @@ import { Save, Plus, X, Eye, EyeOff } from "lucide-react";
 import { slugify } from "@/lib/utils";
 import type { Blog } from "@prisma/client";
 
-interface Props { post?: Blog }
+interface Props {
+  post?: Blog;
+}
 
 const empty = {
-  title: "", slug: "", content: "", thumbnail: "",
-  tags: [] as string[], published: false,
+  title: "",
+  slug: "",
+  content: "",
+  thumbnail: "",
+  tags: [] as string[],
+  published: false,
 };
 
 export default function BlogForm({ post }: Props) {
@@ -19,19 +25,22 @@ export default function BlogForm({ post }: Props) {
   const isEdit = !!post;
 
   const [form, setForm] = useState(
-    isEdit
-      ? { ...post, thumbnail: post.thumbnail ?? "" }
-      : empty
+    isEdit ? { ...post, thumbnail: post.thumbnail ?? "" } : empty,
   );
-  const [tagInput, setTagInput]   = useState("");
-  const [preview, setPreview]     = useState(false);
-  const [saving, setSaving]       = useState(false);
-  const [error, setError]         = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [preview, setPreview] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const update = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
+  const update = (key: string, val: any) =>
+    setForm((f) => ({ ...f, [key]: val }));
 
   const handleTitleChange = (val: string) =>
-    setForm((f) => ({ ...f, title: val, slug: isEdit ? f.slug : slugify(val) }));
+    setForm((f) => ({
+      ...f,
+      title: val,
+      slug: isEdit ? f.slug : slugify(val),
+    }));
 
   const addTag = () => {
     const t = tagInput.trim().toLowerCase();
@@ -39,19 +48,29 @@ export default function BlogForm({ post }: Props) {
     setTagInput("");
   };
 
-  const removeTag = (t: string) => update("tags", form.tags.filter((x) => x !== t));
+  const removeTag = (t: string) =>
+    update(
+      "tags",
+      form.tags.filter((x) => x !== t),
+    );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true); setError("");
+    setSaving(true);
+    setError("");
     try {
-      const url    = isEdit ? `/api/blog/${post!.slug}` : "/api/blog";
+      const url = isEdit ? `/api/blog/${post!.slug}` : "/api/blog";
       const method = isEdit ? "PUT" : "POST";
-      const res    = await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error);
+      }
+
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       router.push("/admin/blog");
@@ -69,7 +88,9 @@ export default function BlogForm({ post }: Props) {
         {/* Title & Slug */}
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Title *</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              Title *
+            </label>
             <input
               required
               value={form.title}
@@ -79,7 +100,9 @@ export default function BlogForm({ post }: Props) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Slug *</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              Slug *
+            </label>
             <input
               required
               value={form.slug}
@@ -91,7 +114,9 @@ export default function BlogForm({ post }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">Thumbnail URL</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Thumbnail URL
+          </label>
           <input
             type="url"
             value={form.thumbnail}
@@ -103,12 +128,19 @@ export default function BlogForm({ post }: Props) {
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">Tags</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Tags
+          </label>
           <div className="flex gap-2 mb-2">
             <input
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addTag();
+                }
+              }}
               placeholder="typescript, nextjs…"
               className="flex-1 bg-surface border border-surface-border rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-accent placeholder:text-slate-600"
             />
@@ -122,9 +154,14 @@ export default function BlogForm({ post }: Props) {
           </div>
           <div className="flex flex-wrap gap-2">
             {form.tags.map((t) => (
-              <span key={t} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-accent-muted text-accent rounded-lg">
+              <span
+                key={t}
+                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-accent-muted text-accent rounded-lg"
+              >
                 {t}
-                <button type="button" onClick={() => removeTag(t)}><X size={11} /></button>
+                <button type="button" onClick={() => removeTag(t)}>
+                  <X size={11} />
+                </button>
               </span>
             ))}
           </div>
@@ -145,13 +182,23 @@ export default function BlogForm({ post }: Props) {
       {/* Content editor */}
       <div className="card overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b border-surface-border">
-          <span className="text-sm font-medium text-slate-300">Content (HTML / Markdown)</span>
+          <span className="text-sm font-medium text-slate-300">
+            Content (HTML / Markdown)
+          </span>
           <button
             type="button"
             onClick={() => setPreview(!preview)}
             className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-accent transition-colors"
           >
-            {preview ? <><EyeOff size={13} /> Edit</> : <><Eye size={13} /> Preview</>}
+            {preview ? (
+              <>
+                <EyeOff size={13} /> Edit
+              </>
+            ) : (
+              <>
+                <Eye size={13} /> Preview
+              </>
+            )}
           </button>
         </div>
         {preview ? (
@@ -178,7 +225,8 @@ export default function BlogForm({ post }: Props) {
           disabled={saving}
           className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white font-medium rounded-xl text-sm transition-colors"
         >
-          <Save size={15} /> {saving ? "Saving…" : isEdit ? "Update post" : "Create post"}
+          <Save size={15} />{" "}
+          {saving ? "Saving…" : isEdit ? "Update post" : "Create post"}
         </button>
         <button
           type="button"

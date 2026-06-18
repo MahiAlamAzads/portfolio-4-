@@ -6,16 +6,18 @@ import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 import type { Education } from "@prisma/client";
 
-interface Props { education?: Education }
+interface Props {
+  education?: Education;
+}
 
 const empty = {
   institution: "",
-  degree:      "",
-  field:       "",
-  startYear:   new Date().getFullYear(),
-  endYear:     "" as number | "",
+  degree: "",
+  field: "",
+  startYear: new Date().getFullYear(),
+  endYear: "" as number | "",
   description: "",
-  current:     false,
+  current: false,
 };
 
 export default function EducationForm({ education }: Props) {
@@ -24,35 +26,47 @@ export default function EducationForm({ education }: Props) {
 
   const [form, setForm] = useState(
     isEdit
-      ? { ...education, endYear: education.endYear ?? ("" as number | ""), current: !education.endYear }
-      : empty
+      ? {
+          ...education,
+          endYear: education.endYear ?? ("" as number | ""),
+          current: !education.endYear,
+        }
+      : empty,
   );
   const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState("");
+  const [error, setError] = useState("");
 
-  const update = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
+  const update = (key: string, val: any) =>
+    setForm((f) => ({ ...f, [key]: val }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true); setError("");
+    setSaving(true);
+    setError("");
     try {
       const payload = {
         institution: form.institution,
-        degree:      form.degree,
-        field:       form.field,
-        startYear:   Number(form.startYear),
-        endYear:     form.current || form.endYear === "" ? null : Number(form.endYear),
+        degree: form.degree,
+        field: form.field,
+        startYear: Number(form.startYear),
+        endYear:
+          form.current || form.endYear === "" ? null : Number(form.endYear),
         description: form.description || null,
       };
 
-      const url    = isEdit ? `/api/education/${education!.id}` : "/api/education";
+      const url = isEdit ? `/api/education/${education!.id}` : "/api/education";
       const method = isEdit ? "PUT" : "POST";
 
-      const res  = await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(payload),
+        body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error);
+      }
+
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       router.push("/admin/experience");
@@ -66,11 +80,13 @@ export default function EducationForm({ education }: Props) {
 
   // Build year options (1960 → current year)
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1959 }, (_, i) => currentYear - i);
+  const years = Array.from(
+    { length: currentYear - 1959 },
+    (_, i) => currentYear - i,
+  );
 
   return (
     <form onSubmit={handleSubmit} className="card p-6 space-y-5">
-
       {/* Institution */}
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-1.5">
@@ -126,7 +142,9 @@ export default function EducationForm({ education }: Props) {
             className="w-full bg-surface border border-surface-border rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-accent transition-colors"
           >
             {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
+              <option key={y} value={y}>
+                {y}
+              </option>
             ))}
           </select>
         </div>
@@ -134,18 +152,27 @@ export default function EducationForm({ education }: Props) {
           <label className="block text-sm font-medium text-slate-300 mb-1.5">
             End Year{" "}
             {form.current && (
-              <span className="text-slate-500 font-normal">(disabled — currently enrolled)</span>
+              <span className="text-slate-500 font-normal">
+                (disabled — currently enrolled)
+              </span>
             )}
           </label>
           <select
             value={form.endYear}
-            onChange={(e) => update("endYear", e.target.value === "" ? "" : Number(e.target.value))}
+            onChange={(e) =>
+              update(
+                "endYear",
+                e.target.value === "" ? "" : Number(e.target.value),
+              )
+            }
             disabled={form.current}
             className="w-full bg-surface border border-surface-border rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <option value="">Select year</option>
             {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
+              <option key={y} value={y}>
+                {y}
+              </option>
             ))}
           </select>
         </div>

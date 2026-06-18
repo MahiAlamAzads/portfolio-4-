@@ -6,16 +6,18 @@ import { useRouter } from "next/navigation";
 import { Save, Plus, X } from "lucide-react";
 import type { Experience } from "@prisma/client";
 
-interface Props { experience?: Experience }
+interface Props {
+  experience?: Experience;
+}
 
 const empty = {
-  company:      "",
-  role:         "",
-  logo:         "",
-  startDate:    "",
-  endDate:      "",
-  current:      false,
-  description:  "",
+  company: "",
+  role: "",
+  logo: "",
+  startDate: "",
+  endDate: "",
+  current: false,
+  description: "",
   technologies: [] as string[],
 };
 
@@ -27,46 +29,64 @@ export default function ExperienceForm({ experience }: Props) {
     isEdit
       ? {
           ...experience,
-          logo:      experience.logo      ?? "",
-          endDate:   experience.endDate   ? new Date(experience.endDate).toISOString().slice(0, 10) : "",
+          logo: experience.logo ?? "",
+          endDate: experience.endDate
+            ? new Date(experience.endDate).toISOString().slice(0, 10)
+            : "",
           startDate: new Date(experience.startDate).toISOString().slice(0, 10),
           technologies: experience.technologies ?? [],
         }
-      : empty
+      : empty,
   );
   const [techInput, setTechInput] = useState("");
-  const [saving, setSaving]       = useState(false);
-  const [error, setError]         = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const update = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
+  const update = (key: string, val: any) =>
+    setForm((f) => ({ ...f, [key]: val }));
 
   const addTech = () => {
     const t = techInput.trim();
-    if (t && !form.technologies.includes(t)) update("technologies", [...form.technologies, t]);
+    if (t && !form.technologies.includes(t))
+      update("technologies", [...form.technologies, t]);
     setTechInput("");
   };
 
   const removeTech = (t: string) =>
-    update("technologies", form.technologies.filter((x) => x !== t));
+    update(
+      "technologies",
+      form.technologies.filter((x) => x !== t),
+    );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true); setError("");
+    setSaving(true);
+    setError("");
     try {
       const payload = {
         ...form,
         startDate: new Date(form.startDate).toISOString(),
-        endDate:   form.current || !form.endDate ? undefined : new Date(form.endDate).toISOString(),
+        endDate:
+          form.current || !form.endDate
+            ? undefined
+            : new Date(form.endDate).toISOString(),
       };
 
-      const url    = isEdit ? `/api/experience/${experience!.id}` : "/api/experience";
+      const url = isEdit
+        ? `/api/experience/${experience!.id}`
+        : "/api/experience";
       const method = isEdit ? "PUT" : "POST";
 
-      const res  = await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(payload),
+        body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error);
+      }
+
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       router.push("/admin/experience");
@@ -80,11 +100,12 @@ export default function ExperienceForm({ experience }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="card p-6 space-y-5">
-
       {/* Company & Role */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">Company *</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Company *
+          </label>
           <input
             required
             value={form.company}
@@ -94,7 +115,9 @@ export default function ExperienceForm({ experience }: Props) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">Role / Title *</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Role / Title *
+          </label>
           <input
             required
             value={form.role}
@@ -107,7 +130,9 @@ export default function ExperienceForm({ experience }: Props) {
 
       {/* Logo URL */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">Company Logo URL</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          Company Logo URL
+        </label>
         <input
           type="url"
           value={form.logo}
@@ -120,7 +145,9 @@ export default function ExperienceForm({ experience }: Props) {
       {/* Dates */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">Start Date *</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Start Date *
+          </label>
           <input
             required
             type="date"
@@ -131,7 +158,12 @@ export default function ExperienceForm({ experience }: Props) {
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1.5">
-            End Date {form.current && <span className="text-slate-500 font-normal">(disabled — current role)</span>}
+            End Date{" "}
+            {form.current && (
+              <span className="text-slate-500 font-normal">
+                (disabled — current role)
+              </span>
+            )}
           </label>
           <input
             type="date"
@@ -162,7 +194,9 @@ export default function ExperienceForm({ experience }: Props) {
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">Description *</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          Description *
+        </label>
         <textarea
           required
           rows={4}
@@ -175,12 +209,19 @@ export default function ExperienceForm({ experience }: Props) {
 
       {/* Technologies */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">Technologies Used</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          Technologies Used
+        </label>
         <div className="flex gap-2 mb-2">
           <input
             value={techInput}
             onChange={(e) => setTechInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTech(); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addTech();
+              }
+            }}
             placeholder="React, TypeScript, AWS…"
             className="flex-1 bg-surface border border-surface-border rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-accent transition-colors placeholder:text-slate-600"
           />

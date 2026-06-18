@@ -17,25 +17,24 @@ export default function SyncGithubProjectsButton() {
         method: "POST",
       });
 
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error);
+      }
+
       const data = await res.json();
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Failed to sync projects");
       }
 
-      alert(
-        `Synced ${data.data.synced} projects\nFailed: ${data.data.failed}`
-      );
+      alert(`Synced ${data.data.synced} projects\nFailed: ${data.data.failed}`);
 
       router.refresh();
     } catch (error) {
       console.error(error);
 
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to sync projects"
-      );
+      alert(error instanceof Error ? error.message : "Failed to sync projects");
     } finally {
       setLoading(false);
     }

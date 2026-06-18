@@ -7,9 +7,9 @@ import { Code2, Eye, EyeOff, Lock } from "lucide-react";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [form, setForm]       = useState({ email: "", password: "" });
-  const [showPw, setShowPw]   = useState(false);
-  const [error, setError]     = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,12 +18,18 @@ export default function LoginForm() {
     setError("");
     try {
       const res = await fetch("/api/auth/login", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error);
+      }
+
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error ?? "Login failed");
+      if (!res.ok || !data.success)
+        throw new Error(data.error ?? "Login failed");
       router.push("/admin/dashboard");
       router.refresh();
     } catch (err: any) {
@@ -45,7 +51,9 @@ export default function LoginForm() {
             <Code2 size={22} className="text-accent" />
             <span className="gradient-text">admin panel</span>
           </div>
-          <p className="text-slate-500 text-sm mt-2">Sign in to manage your portfolio</p>
+          <p className="text-slate-500 text-sm mt-2">
+            Sign in to manage your portfolio
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="card p-6 space-y-4">

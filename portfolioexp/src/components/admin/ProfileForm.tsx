@@ -5,37 +5,47 @@ import { useState } from "react";
 import { Save, CheckCircle } from "lucide-react";
 import type { Profile } from "@prisma/client";
 
-interface Props { profile: Profile | null }
+interface Props {
+  profile: Profile | null;
+}
 
 export default function ProfileForm({ profile }: Props) {
   const [form, setForm] = useState({
-    fullName:     profile?.fullName     ?? "",
-    title:        profile?.title        ?? "",
-    bio:          profile?.bio          ?? "",
-    avatar:       profile?.avatar       ?? "",
-    location:     profile?.location     ?? "",
-    email:        profile?.email        ?? "",
-    phone:        profile?.phone        ?? "",
-    resumeUrl:    profile?.resumeUrl    ?? "",
+    fullName: profile?.fullName ?? "",
+    title: profile?.title ?? "",
+    bio: profile?.bio ?? "",
+    avatar: profile?.avatar ?? "",
+    location: profile?.location ?? "",
+    email: profile?.email ?? "",
+    phone: profile?.phone ?? "",
+    resumeUrl: profile?.resumeUrl ?? "",
     availability: profile?.availability ?? true,
-    socialLinks:  (profile?.socialLinks as Record<string, string>) ?? {},
+    socialLinks: (profile?.socialLinks as Record<string, string>) ?? {},
   });
-  const [saving, setSaving]   = useState(false);
-  const [saved, setSaved]     = useState(false);
-  const [error, setError]     = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
-  const update = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
+  const update = (key: string, val: any) =>
+    setForm((f) => ({ ...f, [key]: val }));
   const updateSocial = (key: string, val: string) =>
     setForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, [key]: val } }));
 
   const handleSave = async () => {
-    setSaving(true); setError(""); setSaved(false);
+    setSaving(true);
+    setError("");
+    setSaved(false);
     try {
       const res = await fetch("/api/profile", {
-        method:  "PUT",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error);
+      }
+
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       setSaved(true);
@@ -48,10 +58,20 @@ export default function ProfileForm({ profile }: Props) {
   };
 
   const Field = ({
-    label, field, type = "text", placeholder = ""
-  }: { label: string; field: string; type?: string; placeholder?: string }) => (
+    label,
+    field,
+    type = "text",
+    placeholder = "",
+  }: {
+    label: string;
+    field: string;
+    type?: string;
+    placeholder?: string;
+  }) => (
     <div>
-      <label className="block text-sm font-medium text-slate-300 mb-1.5">{label}</label>
+      <label className="block text-sm font-medium text-slate-300 mb-1.5">
+        {label}
+      </label>
       <input
         type={type}
         value={(form as any)[field] ?? ""}
@@ -65,12 +85,18 @@ export default function ProfileForm({ profile }: Props) {
   return (
     <div className="card p-6 space-y-5">
       <div className="grid sm:grid-cols-2 gap-4">
-        <Field label="Full Name"    field="fullName"  placeholder="Alex Rivera" />
-        <Field label="Title / Tagline" field="title"  placeholder="Full-Stack Engineer" />
+        <Field label="Full Name" field="fullName" placeholder="Alex Rivera" />
+        <Field
+          label="Title / Tagline"
+          field="title"
+          placeholder="Full-Stack Engineer"
+        />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">Bio</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          Bio
+        </label>
         <textarea
           rows={4}
           value={form.bio}
@@ -81,10 +107,19 @@ export default function ProfileForm({ profile }: Props) {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <Field label="Avatar URL" field="avatar"    placeholder="https://…" />
-        <Field label="Location"   field="location"  placeholder="San Francisco, CA" />
-        <Field label="Email"      field="email"     type="email" placeholder="alex@example.com" />
-        <Field label="Phone"      field="phone"     placeholder="+1 (555) 000-0000" />
+        <Field label="Avatar URL" field="avatar" placeholder="https://…" />
+        <Field
+          label="Location"
+          field="location"
+          placeholder="San Francisco, CA"
+        />
+        <Field
+          label="Email"
+          field="email"
+          type="email"
+          placeholder="alex@example.com"
+        />
+        <Field label="Phone" field="phone" placeholder="+1 (555) 000-0000" />
         <Field label="Resume URL" field="resumeUrl" placeholder="https://…" />
       </div>
 
@@ -107,11 +142,15 @@ export default function ProfileForm({ profile }: Props) {
 
       {/* Social links */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-300 mb-3">Social Links</h3>
+        <h3 className="text-sm font-semibold text-slate-300 mb-3">
+          Social Links
+        </h3>
         <div className="grid sm:grid-cols-2 gap-3">
           {["github", "linkedin", "twitter", "website"].map((key) => (
             <div key={key}>
-              <label className="block text-xs text-slate-500 mb-1 capitalize">{key}</label>
+              <label className="block text-xs text-slate-500 mb-1 capitalize">
+                {key}
+              </label>
               <input
                 type="url"
                 value={form.socialLinks[key] ?? ""}
@@ -132,11 +171,15 @@ export default function ProfileForm({ profile }: Props) {
         className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white font-medium rounded-xl text-sm transition-colors"
       >
         {saved ? (
-          <><CheckCircle size={15} /> Saved!</>
+          <>
+            <CheckCircle size={15} /> Saved!
+          </>
         ) : saving ? (
           "Saving…"
         ) : (
-          <><Save size={15} /> Save profile</>
+          <>
+            <Save size={15} /> Save profile
+          </>
         )}
       </button>
     </div>
