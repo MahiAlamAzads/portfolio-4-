@@ -12,14 +12,30 @@ import ExperiencePage from "@/components/public/ExperiencePage";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Alex Rivera – Full-Stack Engineer",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await prisma.profile.findFirst({
+    select: {
+      fullName: true,
+    },
+  });
+
+  return {
+    title: profile?.fullName || "Portfolio",
+  };
+}
+
+async function getProfile() {
+  return prisma.profile.findFirst();
+}
 
 async function getHomeData() {
   const [profile, featuredProjects, skills] = await Promise.all([
-    prisma.profile.findFirst(),
-    prisma.project.findMany({ where: { featured: true }, take: 3, orderBy: { createdAt: "desc" } }),
+    getProfile(),
+    prisma.project.findMany({
+      where: { featured: true },
+      take: 3,
+      orderBy: { createdAt: "desc" },
+    }),
     prisma.skill.findMany({ orderBy: { level: "desc" }, take: 12 }),
   ]);
   return { profile, featuredProjects, skills };
@@ -44,11 +60,14 @@ export default async function HomePage() {
 
             <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight">
               {profile?.fullName ?? "Full-Stack"}{" "}
-              <span className="gradient-text block">{profile?.title ?? "Engineer"}</span>
+              <span className="gradient-text block">
+                {profile?.title ?? "Engineer"}
+              </span>
             </h1>
 
             <p className="text-slate-400 text-lg leading-relaxed max-w-lg">
-              {profile?.bio ?? "Building fast, accessible products at the intersection of great UX and solid engineering."}
+              {profile?.bio ??
+                "Building fast, accessible products at the intersection of great UX and solid engineering."}
             </p>
 
             {profile?.location && (
@@ -99,14 +118,16 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <ExperiencePage/>
+      <ExperiencePage />
 
       {/* ── Featured Projects ───────────────────────────────── */}
       {featuredProjects.length > 0 && (
         <section className="section">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <p className="text-accent text-sm font-mono font-medium mb-1">// selected work</p>
+              <p className="text-accent text-sm font-mono font-medium mb-1">
+                // selected work
+              </p>
               <h2 className="text-3xl font-bold">Featured Projects</h2>
             </div>
             <Link
@@ -127,7 +148,9 @@ export default async function HomePage() {
       {/* ── Skills Preview ──────────────────────────────────── */}
       {skills.length > 0 && (
         <section className="section">
-          <p className="text-accent text-sm font-mono font-medium mb-1">// tech stack</p>
+          <p className="text-accent text-sm font-mono font-medium mb-1">
+            // tech stack
+          </p>
           <h2 className="text-3xl font-bold mb-8">Skills & Technologies</h2>
           <div className="flex flex-wrap gap-3">
             {skills.map((skill) => (
